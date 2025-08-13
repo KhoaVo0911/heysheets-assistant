@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { chatService } from "../services/chatService.js";
-import { runDemoFlow, runAllDemos } from "../demo/testCases.js";
+import DemoPanel from "./demo-panel.jsx";
+import DataManager from "./data-manager.jsx";
+import BookingFlow from "./booking-flow.jsx";
 
-export const Thread = () => {
+export default function Thread() {
   const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState("");
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showDemoButtons, setShowDemoButtons] = useState(false);
+  const [showBookingFlow, setShowBookingFlow] = useState(false);
+  const [lastBooking, setLastBooking] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -18,7 +20,6 @@ export const Thread = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize chat
   useEffect(() => {
     const welcomeMessage = chatService.resetConversation();
     setMessages([
@@ -32,29 +33,25 @@ export const Thread = () => {
     ]);
   }, []);
 
-  // Handle send message
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!input.trim() || isLoading) return;
 
-    const userMessage = inputValue.trim();
-    setInputValue("");
+    const userMessage = input.trim();
+    setInput("");
+    setIsLoading(true);
 
-    // Add user message
+    // Add user message to chat
     const userMsg = {
       id: Date.now(),
       sender: "user",
       message: userMessage,
       timestamp: new Date().toISOString(),
     };
-
     setMessages((prev) => [...prev, userMsg]);
-    setIsLoading(true);
 
     try {
-      // Process message through chat service
       const response = await chatService.processMessage(userMessage);
 
-      // Add assistant response
       const assistantMsg = {
         id: Date.now() + 1,
         sender: "assistant",
@@ -62,124 +59,163 @@ export const Thread = () => {
         suggestedActions: response.suggestedActions,
         timestamp: new Date().toISOString(),
       };
-
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (error) {
       console.error("Error processing message:", error);
-
       const errorMsg = {
         id: Date.now() + 1,
         sender: "assistant",
-        message: "I'm sorry, I encountered an error. Please try again.",
+        message: "Sorry, I encountered an error. Please try again.",
         suggestedActions: ["Try again", "Start over"],
         timestamp: new Date().toISOString(),
       };
-
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle suggested action click
   const handleSuggestedAction = async (action) => {
     if (isLoading) return;
 
-    setInputValue(action);
-    await handleSendMessage();
-  };
+    if (
+      action.toLowerCase().includes("book") ||
+      action.toLowerCase().includes("appointment")
+    ) {
+      setShowBookingFlow(true);
+      return;
+    }
 
-  // Handle key press
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+    try {
+      const response = await chatService.handleSuggestedAction(action);
+
+      const userMsg = {
+        id: Date.now(),
+        sender: "user",
+        message: action,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, userMsg]);
+
+      const assistantMsg = {
+        id: Date.now() + 1,
+        sender: "assistant",
+        message: response.message,
+        suggestedActions: response.suggestedActions,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch (error) {
+      console.error("Error handling suggested action:", error);
     }
   };
 
-  // Handle demo flows
-  const handleDemoFlow = async (flowName) => {
-    console.log(`🚀 Running ${flowName} demo...`);
-    await runDemoFlow(chatService, flowName);
+  const handleResetChat = () => {
+    const welcomeMessage = chatService.resetConversation();
+    setMessages([
+      {
+        id: Date.now(),
+        sender: "assistant",
+        message: welcomeMessage.message,
+        suggestedActions: welcomeMessage.suggestedActions,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
   };
 
-  const handleRunAllDemos = async () => {
-    console.log("🎬 Running all demos...");
-    await runAllDemos(chatService);
+  const handleRunDemo = async (demoStep) => {
+    try {
+      const response = await chatService.processMessage(demoStep);
+      return response;
+    } catch (error) {
+      console.error("Error running demo step:", error);
+      return {
+        message: "Demo step failed",
+        intent: "ERROR",
+        confidence: 0,
+      };
+    }
+  };
+
+  const handleDataChange = (newData) => {
+    console.log("Data changed:", newData);
+    // Here you can update the chat service with new data
+    // or trigger a refresh of the conversation
+  };
+
+  const handleBookingComplete = (bookingData) => {
+    setLastBooking(bookingData);
+
+    const confirmationMsg = {
+      id: Date.now(),
+      sender: "assistant",
+      message:
+        `🎉 **Booking Confirmed!**\n\nYour appointment has been successfully scheduled:\n\n` +
+        `📅 **Service:** ${bookingData.service.name}\n` +
+        `📅 **Date:** ${new Date(bookingData.date).toLocaleDateString()}\n` +
+        `⏰ **Time:** ${bookingData.time}\n` +
+        `🆔 **Booking ID:** ${bookingData.id}\n\n` +
+        `A confirmation email has been sent to ${bookingData.customer.email}`,
+      suggestedActions: [
+        "Book another appointment",
+        "Show me your products",
+        "What are your hours?",
+        "Where are you located?",
+      ],
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, confirmationMsg]);
   };
 
   return (
     <div className="flex flex-col h-full">
-      {/* Demo Controls */}
-      <div className="bg-blue-50 p-3 border-b">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => setShowDemoButtons(!showDemoButtons)}
-            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
-          >
-            {showDemoButtons ? "Hide" : "Show"} Demo Controls
-          </button>
-
-          {showDemoButtons && (
-            <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => handleDemoFlow("productBrowsing")}
-                className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
-              >
-                🛍️ Product Flow
-              </button>
-              <button
-                onClick={() => handleDemoFlow("bookingFlow")}
-                className="bg-purple-500 text-white px-2 py-1 rounded text-xs hover:bg-purple-600"
-              >
-                📅 Booking Flow
-              </button>
-              <button
-                onClick={() => handleDemoFlow("informationQueries")}
-                className="bg-orange-500 text-white px-2 py-1 rounded text-xs hover:bg-orange-600"
-              >
-                ℹ️ Info Queries
-              </button>
-              <button
-                onClick={() => handleDemoFlow("pricingAvailability")}
-                className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
-              >
-                💰 Pricing
-              </button>
-              <button
-                onClick={handleRunAllDemos}
-                className="bg-indigo-500 text-white px-2 py-1 rounded text-xs hover:bg-indigo-600"
-              >
-                🎬 Run All
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <Message
-            key={msg.id}
-            message={msg}
-            onSuggestedAction={handleSuggestedAction}
-          />
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${
+              message.sender === "user" ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                message.sender === "user"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-800"
+              }`}
+            >
+              <div className="whitespace-pre-wrap">{message.message}</div>
+
+              {message.suggestedActions &&
+                message.suggestedActions.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {message.suggestedActions.map((action, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestedAction(action)}
+                        disabled={isLoading}
+                        className="block w-full text-left px-3 py-2 bg-white bg-opacity-20 rounded text-sm hover:bg-opacity-30 transition-colors disabled:opacity-50"
+                      >
+                        {action}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+              <div className="text-xs opacity-70 mt-2">
+                {new Date(message.timestamp).toLocaleTimeString()}
+              </div>
+            </div>
+          </div>
         ))}
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg p-3 max-w-xs">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
+            <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                <span>Thinking...</span>
               </div>
             </div>
           </div>
@@ -188,69 +224,48 @@ export const Thread = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="border-t bg-white p-4">
+      <div className="border-t border-gray-200 p-4">
         <div className="flex space-x-2">
           <input
             type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message here..."
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+            placeholder="Type your message..."
             disabled={isLoading}
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           />
           <button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isLoading}
-            className="bg-pink-500 text-white px-4 py-1 rounded-lg hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={!input.trim() || isLoading}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Send
           </button>
+          <button
+            onClick={handleResetChat}
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+          >
+            🔄 Reset
+          </button>
+          <button
+            onClick={() => setShowBookingFlow(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+          >
+            📅 Book Now
+          </button>
         </div>
       </div>
+
+      <DemoPanel onRunDemo={handleRunDemo} onReset={handleResetChat} />
+
+      <DataManager onDataChange={handleDataChange} />
+
+      <BookingFlow
+        isOpen={showBookingFlow}
+        onClose={() => setShowBookingFlow(false)}
+        onBookingComplete={handleBookingComplete}
+      />
     </div>
   );
-};
-
-// Message component
-const Message = ({ message, onSuggestedAction }) => {
-  const isUser = message.sender === "user";
-
-  return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`max-w-xs lg:max-w-md ${
-          isUser ? "bg-blue-600 text-white" : "bg-white border border-gray-200"
-        } rounded-lg p-3 shadow-sm`}
-      >
-        <div className="text-sm">{message.message}</div>
-
-        {/* Suggested Actions */}
-        {message.suggestedActions &&
-          message.suggestedActions.length > 0 &&
-          !isUser && (
-            <div className="mt-3 space-y-2">
-              {message.suggestedActions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={() => onSuggestedAction(action)}
-                  className="block w-full text-left text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded px-3 py-2 transition-colors"
-                >
-                  {action}
-                </button>
-              ))}
-            </div>
-          )}
-
-        <div
-          className={`text-xs mt-2 ${
-            isUser ? "text-blue-100" : "text-gray-400"
-          }`}
-        >
-          {new Date(message.timestamp).toLocaleTimeString()}
-        </div>
-      </div>
-    </div>
-  );
-};
+}

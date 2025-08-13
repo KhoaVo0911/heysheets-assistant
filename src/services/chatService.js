@@ -1,7 +1,7 @@
-// Chat Service chính cho HeySheets
 import { intentClassifier } from "./intentClassifier.js";
 import { responseGenerator } from "./responseGenerator.js";
 import { mockSheetsAPI } from "../data/fakeData.js";
+import { contextManager } from "./contextManager.js";
 
 export class ChatService {
   constructor() {
@@ -11,33 +11,26 @@ export class ChatService {
     this.currentStep = null;
   }
 
-  // Xử lý message từ user
   async processMessage(userMessage) {
     try {
-      // 1. Classify intent
       const intentResult = await intentClassifier.classifyIntent(userMessage);
 
-      // 2. Extract entities
       const entities = intentClassifier.extractEntities(
         userMessage,
         intentResult.intent
       );
 
-      // 3. Generate response
+      this.updateContext(intentResult.intent, entities);
+
       const response = await responseGenerator.generateResponse(
         intentResult.intent,
         entities,
         this.currentContext
       );
 
-      // 4. Update context
-      this.updateContext(intentResult.intent, entities, response);
-
-      // 5. Add to conversation history
       this.addToHistory("user", userMessage);
       this.addToHistory("assistant", response.message);
 
-      // 6. Return response với suggested actions
       return {
         message: response.message,
         suggestedActions: response.suggestedActions || [],
@@ -58,14 +51,18 @@ export class ChatService {
     }
   }
 
-  // Update conversation context
-  updateContext(intent, entities, response) {
-    // Store last user message for context
-    this.currentContext.lastUserMessage =
-      this.conversationHistory[this.conversationHistory.length - 2]?.message ||
-      "";
+  updateContext(intent, entities) {
+    const lastUserMessage =
+      this.conversationHistory.filter((msg) => msg.sender === "user").pop()
+        ?.message || "";
 
-    // Update context based on intent
+    this.currentContext.lastUserMessage = lastUserMessage;
+
+    console.log("🔍 Debug - Storing context:");
+    console.log("🔍 Last user message:", lastUserMessage);
+    console.log("🔍 Intent:", intent);
+    console.log("🔍 Context updated:", this.currentContext);
+
     switch (intent) {
       case "PRODUCT_PURCHASE":
         if (entities.product) {
@@ -83,6 +80,14 @@ export class ChatService {
         }
         break;
 
+      case "SERVICE_SELECTION":
+        if (entities.service) {
+          this.currentContext.selectedService = entities.service;
+          this.currentContext.currentFlow = "BOOKING";
+          this.currentContext.currentStep = "APPOINTMENT_DETAILS";
+        }
+        break;
+
       case "AVAILABILITY_CHECK":
         if (entities.product) {
           this.currentContext.lastCheckedProduct = entities.product;
@@ -92,78 +97,69 @@ export class ChatService {
         break;
 
       case "PRODUCT_CATEGORY":
-        // Store what category user is interested in
-        if (this.currentContext.lastUserMessage.includes("corset")) {
+        if (lastUserMessage.toLowerCase().includes("corset")) {
           this.currentContext.interestedCategory = "CORSETS";
-        } else if (this.currentContext.lastUserMessage.includes("lingerie")) {
+        } else if (lastUserMessage.toLowerCase().includes("lingerie")) {
           this.currentContext.interestedCategory = "LINGERIE_SETS";
-        } else if (
-          this.currentContext.lastUserMessage.includes("accessories")
-        ) {
+        } else if (lastUserMessage.toLowerCase().includes("accessories")) {
           this.currentContext.interestedCategory = "ACCESSORIES";
         }
         break;
     }
 
-    // Update response generator context
     responseGenerator.updateContext(this.currentContext);
   }
 
-  // Add message to conversation history
   addToHistory(sender, message) {
     this.conversationHistory.push({
       id: Date.now(),
-      sender, // 'user' or 'assistant'
+      sender,
       message,
       timestamp: new Date().toISOString(),
     });
 
-    // Keep only last 50 messages
     if (this.conversationHistory.length > 50) {
       this.conversationHistory = this.conversationHistory.slice(-50);
     }
   }
 
-  // Get conversation history
   getConversationHistory() {
     return this.conversationHistory;
   }
 
-  // Get current context
   getCurrentContext() {
     return this.currentContext;
   }
 
-  // Reset conversation
   resetConversation() {
     this.conversationHistory = [];
-    this.currentContext = {};
-    this.currentFlow = null;
-    this.currentStep = null;
-    responseGenerator.updateContext({});
+    this.currentContext = {
+      currentFlow: null,
+      currentStep: null,
+      selectedProduct: null,
+      selectedService: null,
+      lastUserMessage: "",
+      interestedCategory: null,
+      lastCheckedProduct: null,
+      lastCheckedSize: null,
+      lastCheckedColor: null,
+    };
+
+    contextManager.clearFlowData();
+
+    console.log("🔄 Conversation reset - Context cleared");
 
     return {
       message:
-        "Hello! I'm your AI assistant for Lucky Doll Pin-up Lingerie. How can I help you today?",
-      suggestedActions: [
-        "Show me your products",
-        "Book an appointment",
-        "What are your hours?",
-        "Where are you located?",
-      ],
-      intent: "GREETING",
-      confidence: 1,
-      context: {},
+        "Hello! I'm your HeySheets assistant for Lucky Doll Pin-up Lingerie. I'm here to help you browse our collection, check availability, book appointments, and answer any questions about our products and services.\n\nWhat would you like to do today?",
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
-  // Handle suggested action click
   async handleSuggestedAction(action) {
-    // Treat suggested action as a user message
     return await this.processMessage(action);
   }
 
-  // Get business information
   async getBusinessInfo() {
     try {
       const products = await mockSheetsAPI.readProducts();
@@ -185,13 +181,11 @@ export class ChatService {
     }
   }
 
-  // Create appointment (simulate Google Sheets API)
   async createAppointment(appointmentData) {
     try {
       const result = await mockSheetsAPI.createAppointment(appointmentData);
 
       if (result.success) {
-        // Update context
         this.currentContext.lastAppointmentId = result.id;
         this.currentContext.currentFlow = null;
         this.currentContext.currentStep = null;
@@ -214,13 +208,11 @@ export class ChatService {
     }
   }
 
-  // Create order (simulate Google Sheets API)
   async createOrder(orderData) {
     try {
       const result = await mockSheetsAPI.createOrder(orderData);
 
       if (result.success) {
-        // Update context
         this.currentContext.lastOrderId = result.id;
         this.currentContext.currentFlow = null;
         this.currentContext.currentStep = null;
@@ -242,7 +234,18 @@ export class ChatService {
       };
     }
   }
+
+  getCurrentFlowInfo() {
+    return contextManager.getCurrentFlowInfo();
+  }
+
+  getCartInfo() {
+    return {
+      items: contextManager.cart,
+      total: contextManager.getCartTotal(),
+      count: contextManager.cart.length,
+    };
+  }
 }
 
-// Singleton instance
 export const chatService = new ChatService();

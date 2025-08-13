@@ -1,5 +1,5 @@
-// Response Generator Service cho HeySheets
 import { fakeBusinessData } from "../data/fakeData.js";
+import { contextManager } from "./contextManager.js";
 
 export class ResponseGenerator {
   constructor() {
@@ -8,15 +8,25 @@ export class ResponseGenerator {
   }
 
   async generateResponse(intent, entities = {}, context = {}) {
-    this.conversationContext = { ...this.conversationContext, ...context };
+    console.log("🎯 Generating response for intent:", intent);
+    console.log("🎯 Entities:", entities);
+    console.log("🎯 Context:", context);
 
     switch (intent) {
       case "PRODUCT_CATEGORY":
-        return this.handleProductCategory();
+        return this.handleProductCategory(context);
       case "PRODUCT_PURCHASE":
-        return this.handleProductPurchase(entities);
+        return this.handleProductPurchase(entities, context);
       case "BOOKING":
-        return this.handleBooking();
+        return this.handleBooking(entities);
+      case "SERVICE_SELECTION":
+        return this.handleServiceSelection(entities, context);
+      case "BUSINESS_HOURS":
+        return this.handleBusinessHours();
+      case "LOCATION":
+        return this.handleLocation();
+      case "CONTACT":
+        return this.handleContact();
       case "AVAILABILITY_CHECK":
         return this.handleAvailabilityCheck(entities);
       case "PRICING":
@@ -27,30 +37,35 @@ export class ResponseGenerator {
         return this.handleReturnPolicy();
       case "CUSTOMIZATION":
         return this.handleCustomization();
-      case "BUSINESS_HOURS":
-        return this.handleBusinessHours();
-      case "LOCATION":
-        return this.handleLocation();
-      case "CONTACT":
-        return this.handleContact();
       case "GENERAL_QUESTION":
         return this.handleGeneralQuestion();
       case "APPOINTMENT_MANAGEMENT":
         return this.handleAppointmentManagement();
+      case "ADD_TO_CART":
+        return this.handleAddToCart(entities, context);
+      case "VIEW_CART":
+        return this.handleViewCart();
+      case "CHECKOUT":
+        return this.handleCheckout();
+      case "PLACE_ORDER":
+        return this.handlePlaceOrder(entities, context);
       default:
         return this.handleUnknownIntent();
     }
   }
 
-  handleProductCategory() {
+  handleProductCategory(context = {}) {
     const categories = [
       ...new Set(this.businessData.products.map((p) => p.category)),
     ];
 
-    // Check if user is asking for specific category
-    const message = this.conversationContext.lastUserMessage || "";
+    const message = context.lastUserMessage || "";
 
-    if (message.includes("corset")) {
+    console.log("🔍 Debug - Last user message:", message);
+    console.log("🔍 Debug - Context:", context);
+
+    if (message.toLowerCase().includes("corset")) {
+      contextManager.updateContext("SELECT_CATEGORY");
       const corsets = this.businessData.products.filter(
         (p) => p.category === "CORSETS"
       );
@@ -68,16 +83,15 @@ export class ResponseGenerator {
             )
             .join("") +
           `Would you like to see more details about any specific corset?`,
-        suggestedActions: [
-          "Tell me about the Classic Pin-up Corset",
-          "I want to buy a corset",
-          "Show me other categories",
-          "What about lingerie sets?",
-        ],
+        suggestedActions: contextManager.getSmartSuggestions(),
       };
     }
 
-    if (message.includes("lingerie set") || message.includes("lingerie sets")) {
+    if (
+      message.toLowerCase().includes("lingerie set") ||
+      message.toLowerCase().includes("lingerie sets")
+    ) {
+      contextManager.updateContext("SELECT_CATEGORY");
       const lingerieSets = this.businessData.products.filter(
         (p) => p.category === "LINGERIE_SETS"
       );
@@ -95,16 +109,12 @@ export class ResponseGenerator {
             )
             .join("") +
           `Would you like to see more details about any specific set?`,
-        suggestedActions: [
-          "Tell me about the Victorian Lingerie Set",
-          "I want to buy a lingerie set",
-          "Show me other categories",
-          "What about corsets?",
-        ],
+        suggestedActions: contextManager.getSmartSuggestions(),
       };
     }
 
-    if (message.includes("accessories")) {
+    if (message.toLowerCase().includes("accessories")) {
+      contextManager.updateContext("SELECT_CATEGORY");
       const accessories = this.businessData.products.filter(
         (p) => p.category === "ACCESSORIES"
       );
@@ -118,84 +128,243 @@ export class ResponseGenerator {
                 `💰 Price: ${c.currency} ${c.price}\n` +
                 `📦 Availability: ${c.availability}\n` +
                 `🎨 Colors: ${c.colors.join(", ")}\n` +
-                `📏 Sizes: ${c.sizes.join(", ")}\n\n`
+                `📏 Sizes: ${c.colors.join(", ")}\n\n`
             )
             .join("") +
           `Would you like to see more details about any specific accessory?`,
-        suggestedActions: [
-          "Tell me about the Retro Stockings",
-          "I want to buy accessories",
-          "Show me other categories",
-          "What about corsets?",
-        ],
+        suggestedActions: contextManager.getSmartSuggestions(),
       };
     }
 
-    // Default response for general product browsing
+    if (
+      message.toLowerCase().includes("products") ||
+      message.toLowerCase().includes("show me") ||
+      message.toLowerCase().includes("what do you have")
+    ) {
+      contextManager.updateContext("START_PRODUCT_BROWSE");
+      return {
+        message:
+          `Great! We have several categories:\n\n` +
+          categories.map((cat) => `• **${cat.replace("_", " ")}**`).join("\n") +
+          `\n\nWhat would you like to see?`,
+        suggestedActions: contextManager.getSmartSuggestions(),
+      };
+    }
+
+    contextManager.updateContext("START_PRODUCT_BROWSE");
     return {
       message:
         `Great! We have several categories:\n\n` +
         categories.map((cat) => `• **${cat.replace("_", " ")}**`).join("\n") +
         `\n\nWhat would you like to see?`,
-      suggestedActions: [
-        "Show me corsets",
-        "I want to see lingerie sets",
-        "What accessories do you have?",
-        "Tell me about your products",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
-  handleProductPurchase(entities) {
-    if (entities.product) {
-      const product = this.businessData.products.find((p) =>
-        p.name.toLowerCase().includes(entities.product)
+  handleProductPurchase(entities, context) {
+    console.log("🛒 Handling product purchase for:", entities, context);
+
+    const message = context.lastUserMessage || "";
+
+    if (message.toLowerCase().includes("classic pin-up corset")) {
+      const corset = this.businessData.products.find(
+        (p) => p.name === "Classic Pin-up Corset"
       );
 
-      if (product) {
+      if (corset) {
+        contextManager.updateContext("SELECT_PRODUCT", { product: corset });
         return {
           message:
-            `Perfect! I found the **${product.name}** for you.\n\n` +
-            `💰 **Price:** ${product.currency} ${product.price}\n` +
-            `📦 **Availability:** ${product.availability}\n` +
-            `🎨 **Colors:** ${product.colors.join(", ")}\n` +
-            `📏 **Sizes:** ${product.sizes.join(", ")}\n\n` +
-            `Would you like to proceed with purchasing this item?`,
-          suggestedActions: [
-            "Yes, I want to buy it",
-            "What sizes do you have?",
-            "Show me other colors",
-          ],
+            `Perfect! I found the **${corset.name}** for you!\n\n` +
+            `💰 **Price:** ${corset.currency} ${corset.price}\n` +
+            `📦 **Availability:** ${corset.availability}\n` +
+            `🎨 **Colors:** ${corset.colors.join(", ")}\n` +
+            `📏 **Sizes:** ${corset.sizes.join(", ")}\n\n` +
+            `This beautiful corset features:\n` +
+            `• Classic pin-up style design\n` +
+            `• High-quality materials\n` +
+            `• Adjustable fit\n` +
+            `• Perfect for special occasions\n\n` +
+            `Would you like to add this to your cart or need help with sizing?`,
+          suggestedActions: contextManager.getSmartSuggestions(),
         };
       }
     }
 
     return {
-      message: `I'd be happy to help you with your purchase! What product are you interested in?`,
-      suggestedActions: [
-        "Show me your corsets",
-        "I want lingerie sets",
-        "What accessories do you have?",
-      ],
+      message:
+        `I'd be happy to help you with your purchase! What specific product are you interested in?\n\n` +
+        `You can:\n` +
+        `• Ask about specific products\n` +
+        `• Check availability and pricing\n` +
+        `• Add to cart\n` +
+        `• Get sizing recommendations`,
+      suggestedActions: contextManager.getSmartSuggestions(),
+    };
+  }
+
+  handleAddToCart(entities, context) {
+    const message = context.lastUserMessage || "";
+
+    if (message.toLowerCase().includes("add to cart")) {
+      const flowInfo = contextManager.getCurrentFlowInfo();
+      if (flowInfo.product) {
+        contextManager.addToCart(flowInfo.product);
+
+        return {
+          message:
+            `✅ **${flowInfo.product.name}** has been added to your cart!\n\n` +
+            `🛒 **Cart Total:** ${
+              flowInfo.product.currency
+            } ${contextManager.getCartTotal()}\n` +
+            `📦 **Items in Cart:** ${
+              contextManager.getCurrentFlowInfo().cartCount
+            }\n\n` +
+            `What would you like to do next?`,
+          suggestedActions: contextManager.getSmartSuggestions(),
+        };
+      }
+    }
+
+    return {
+      message:
+        "I'd be happy to help you add items to your cart! What would you like to add?",
+      suggestedActions: contextManager.getSmartSuggestions(),
+    };
+  }
+
+  handleViewCart() {
+    const flowInfo = contextManager.getCurrentFlowInfo();
+    const cart = contextManager.cart;
+
+    if (cart.length === 0) {
+      return {
+        message:
+          "🛒 Your cart is empty. Would you like to browse our products?",
+        suggestedActions: contextManager.getSmartSuggestions(),
+      };
+    }
+
+    const cartItems = cart
+      .map((item) => `• **${item.name}** - ${item.currency} ${item.price}`)
+      .join("\n");
+
+    return {
+      message:
+        `🛒 **Your Cart:**\n\n${cartItems}\n\n` +
+        `💰 **Total:** ${
+          flowInfo.currency || "PHP"
+        } ${contextManager.getCartTotal()}\n\n` +
+        `What would you like to do?`,
+      suggestedActions: contextManager.getSmartSuggestions(),
+    };
+  }
+
+  handleCheckout() {
+    contextManager.updateContext("START_CHECKOUT");
+
+    return {
+      message:
+        `🛒 **Proceeding to Checkout**\n\n` +
+        `You have ${
+          contextManager.getCurrentFlowInfo().cartCount
+        } item(s) in your cart.\n` +
+        `Total: PHP ${contextManager.getCartTotal()}\n\n` +
+        `To complete your order, I'll need some information from you.`,
+      suggestedActions: contextManager.getSmartSuggestions(),
+    };
+  }
+
+  handlePlaceOrder(entities, context) {
+    contextManager.updateContext("PLACE_ORDER", {
+      customerInfo: entities,
+      items: contextManager.cart,
+      total: contextManager.getCartTotal(),
+    });
+
+    return {
+      message:
+        `🎉 **Order Placed Successfully!**\n\n` +
+        `📦 **Order ID:** ORD-${Date.now()}\n` +
+        `💰 **Total:** PHP ${contextManager.getCartTotal()}\n` +
+        `📧 **Confirmation:** We'll send you an email with order details\n\n` +
+        `Thank you for choosing Lucky Doll! Your order will be processed within 1-2 business days.`,
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
   handleBooking() {
+    contextManager.updateContext("START_BOOKING");
+
     return {
       message:
-        `I'd love to help you book an appointment! We offer:\n\n` +
-        this.businessData.services
-          .map(
-            (s) =>
-              `• **${s.name}** - ${s.duration}min (${s.currency} ${s.price})`
-          )
-          .join("\n") +
-        `\n\nWhich service would you like to book?`,
+        `I'd love to help you book an appointment! Here are our professional services:\n\n` +
+        `**🛍️ Personal Fitting Session**\n` +
+        `💰 Price: PHP 500 | ⏱️ Duration: 60 minutes\n` +
+        `✨ Includes: Size measurement, style consultation, fit adjustments, product recommendations\n\n` +
+        `**🎨 Custom Design Consultation**\n` +
+        `💰 Price: PHP 800 | ⏱️ Duration: 90 minutes\n` +
+        `✨ Includes: Design discussion, fabric selection, custom measurements, design sketches\n\n` +
+        `**👥 Group Fitting Session**\n` +
+        `💰 Price: PHP 300 per person | ⏱️ Duration: 120 minutes\n` +
+        `✨ Perfect for bridal parties or special events\n\n` +
+        `**📅 Available Times:**\n` +
+        `• Monday - Friday: 9:00 AM - 5:00 PM\n` +
+        `• Saturday: 10:00 AM - 4:00 PM\n` +
+        `• Sunday: Closed\n\n` +
+        `Would you like to proceed with booking? I can help you select a service, choose a date and time, and collect your information.`,
       suggestedActions: [
-        "Personal Fitting Session",
-        "Custom Design Consultation",
-        "Tell me more about your services",
+        "Book an appointment now",
+        "Tell me more about Personal Fitting Session",
+        "What about Custom Design Consultation?",
+        "What are your business hours?",
+        "Where are you located?",
       ],
+    };
+  }
+
+  handleServiceSelection(entities, context) {
+    const message = context.lastUserMessage || "";
+    let selectedService = null;
+
+    if (entities.service) {
+      selectedService = entities.service;
+    } else if (message.toLowerCase().includes("personal fitting session")) {
+      selectedService = "Personal Fitting Session";
+    } else if (message.toLowerCase().includes("custom design consultation")) {
+      selectedService = "Custom Design Consultation";
+    }
+
+    if (selectedService) {
+      const service = this.businessData.services.find(
+        (s) => s.name === selectedService
+      );
+
+      if (service) {
+        contextManager.updateContext("SELECT_SERVICE", { service: service });
+
+        return {
+          message:
+            `Perfect! You've selected **${service.name}**\n\n` +
+            `📅 **Duration:** ${service.duration} minutes\n` +
+            `💰 **Price:** ${service.currency} ${service.price}\n` +
+            `✨ **What's included:**\n` +
+            `• Professional fitting consultation\n` +
+            `• Size and style recommendations\n` +
+            `• Custom adjustments if needed\n\n` +
+            `**Available time slots:**\n` +
+            `• Monday - Friday: 2:00 PM - 5:00 PM\n` +
+            `• Saturday: 1:00 PM - 4:00 PM\n\n` +
+            `Would you like to confirm this appointment?`,
+          suggestedActions: contextManager.getSmartSuggestions(),
+        };
+      }
+    }
+
+    return {
+      message:
+        "I'm sorry, I didn't catch which service you'd like. Could you please specify?",
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -224,11 +393,7 @@ export class ResponseGenerator {
               `• Colors: ${product.colors.join(", ")}\n` +
               `• Sizes: ${product.sizes.join(", ")}`,
           suggestedActions: available
-            ? [
-                "I want to buy it",
-                "Show me other colors",
-                "What about other sizes?",
-              ]
+            ? ["Add to cart", "Show me other colors", "What about other sizes?"]
             : [
                 "Show me what's available",
                 "When will you restock?",
@@ -240,11 +405,7 @@ export class ResponseGenerator {
 
     return {
       message: `I'd be happy to check availability for you! What product, size, and color are you looking for?`,
-      suggestedActions: [
-        "Check corset availability",
-        "Do you have lingerie sets?",
-        "What's in stock?",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -262,9 +423,9 @@ export class ResponseGenerator {
             `• High-quality materials\n` +
             `• Professional craftsmanship\n` +
             `• Perfect fit guarantee\n\n` +
-            `Would you like to proceed with purchasing?`,
+            `Would you like to add this to your cart?`,
           suggestedActions: [
-            "Yes, I want to buy it",
+            "Add to cart",
             "Show me other options",
             "What about shipping costs?",
             "Tell me about payment methods",
@@ -285,11 +446,7 @@ export class ResponseGenerator {
           .map((s) => `• ${s.name}: ${s.currency} ${s.price}`)
           .join("\n") +
         `\n\nWhat specific item or service would you like pricing for?`,
-      suggestedActions: [
-        "Tell me about corset prices",
-        "How much are fitting sessions?",
-        "What about custom designs?",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -306,12 +463,7 @@ export class ResponseGenerator {
         `• Costs vary by location\n` +
         `• Free shipping on orders over ${this.businessData.business.currency} 5000\n\n` +
         `**Processing time:** 1-2 business days for order processing.`,
-      suggestedActions: [
-        "Calculate shipping to my location",
-        "What about local delivery?",
-        "Tell me about your products",
-        "How do I track my order?",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -328,12 +480,7 @@ export class ResponseGenerator {
         `2. Return item with original packaging\n` +
         `3. Receive refund or exchange\n\n` +
         `**Exchanges:** We're happy to exchange for different sizes or colors if available.`,
-      suggestedActions: [
-        "I want to make a return",
-        "How do I contact you?",
-        "What about exchanges?",
-        "Tell me about your products",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -349,12 +496,7 @@ export class ResponseGenerator {
         `⏱️ **Timeline:** 2-4 weeks for custom orders\n` +
         `💰 **Pricing:** Starts at ${this.businessData.business.currency} 1500\n\n` +
         `Would you like to book a consultation to discuss your custom design?`,
-      suggestedActions: [
-        "Book a consultation",
-        "Tell me about the process",
-        "What are your prices?",
-        "Show me examples",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -367,12 +509,7 @@ export class ResponseGenerator {
         `🎯 **Quality:** Premium materials and expert craftsmanship\n` +
         `💝 **Personal Service:** One-on-one consultations and styling advice\n\n` +
         `We specialize in making every customer feel beautiful and confident. What would you like to know more about?`,
-      suggestedActions: [
-        "Show me your products",
-        "Book a fitting session",
-        "Tell me about your services",
-        "What makes you special?",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -385,12 +522,7 @@ export class ResponseGenerator {
         `✏️ **Modify:** Change service or add notes\n` +
         `📋 **View:** Check your upcoming appointments\n\n` +
         `What would you like to do with your appointment?`,
-      suggestedActions: [
-        "I need to reschedule",
-        "I want to cancel",
-        "Change my appointment details",
-        "View my appointments",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -401,11 +533,7 @@ export class ResponseGenerator {
         `📅 **${this.businessData.business.hours}**\n\n` +
         `📍 **Address:** ${this.businessData.business.address}\n\n` +
         `We're closed on Sundays. Would you like to book an appointment?`,
-      suggestedActions: [
-        "Book an appointment",
-        "What's your address?",
-        "Do you have parking?",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -419,11 +547,7 @@ export class ResponseGenerator {
         `• Look for Unit E\n` +
         `• Street parking available\n` +
         `• Near public transportation`,
-      suggestedActions: [
-        "Book an appointment",
-        "What are your hours?",
-        "Do you have parking?",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -435,11 +559,7 @@ export class ResponseGenerator {
         `📱 **Phone:** ${this.businessData.business.phone}\n` +
         `🌐 **Website:** ${this.businessData.business.website}\n` +
         `📍 **Address:** ${this.businessData.business.address}`,
-      suggestedActions: [
-        "Book an appointment",
-        "Ask me a question",
-        "Tell me about your products",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 
@@ -452,12 +572,7 @@ export class ResponseGenerator {
         `• **Bookings:** Schedule appointments\n` +
         `• **Information:** Hours, location, policies\n` +
         `• **Support:** Questions and assistance`,
-      suggestedActions: [
-        "Show me your products",
-        "Book an appointment",
-        "What are your hours?",
-        "Where are you located?",
-      ],
+      suggestedActions: contextManager.getSmartSuggestions(),
     };
   }
 

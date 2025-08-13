@@ -1,6 +1,3 @@
-// Intent Classification Service cho HeySheets
-// Mô phỏng Groq LLM intent classification
-
 import { intentExamples } from "../data/fakeData.js";
 
 export class IntentClassifier {
@@ -12,22 +9,139 @@ export class IntentClassifier {
   async classifyIntent(userMessage) {
     const message = userMessage.toLowerCase();
 
-    // Simple keyword-based classification (trong thực tế sẽ dùng Groq LLM)
     const intentScores = {};
 
     this.intents.forEach((intent) => {
       intentScores[intent] = this.calculateIntentScore(message, intent);
     });
 
-    // Tìm intent có score cao nhất
     const bestIntent = Object.entries(intentScores).sort(
       ([, a], [, b]) => b - a
     )[0];
 
-    // Debug logging
-    console.log("Message:", userMessage);
-    console.log("Intent scores:", intentScores);
-    console.log("Best intent:", bestIntent);
+    console.log("🔍 Message:", userMessage);
+    console.log("🔍 Intent scores:", intentScores);
+    console.log("🔍 Best intent:", bestIntent);
+
+    if (
+      message.includes("personal fitting session") ||
+      message.includes("fitting session")
+    ) {
+      console.log("📅 Detected Personal Fitting Session selection");
+      return {
+        intent: "SERVICE_SELECTION",
+        confidence: 0.95,
+        message: userMessage,
+        service: "Personal Fitting Session",
+      };
+    }
+
+    if (
+      message.includes("custom design consultation") ||
+      message.includes("consultation")
+    ) {
+      console.log("📅 Detected Custom Design Consultation selection");
+      return {
+        intent: "SERVICE_SELECTION",
+        confidence: 0.95,
+        message: userMessage,
+        service: "Custom Design Consultation",
+      };
+    }
+
+    if (message.includes("add to cart") || message.includes("add to cart")) {
+      console.log("🛒 Detected add to cart intent");
+      return {
+        intent: "ADD_TO_CART",
+        confidence: 0.9,
+        message: userMessage,
+      };
+    }
+
+    if (
+      message.includes("view cart") ||
+      message.includes("show cart") ||
+      message.includes("my cart")
+    ) {
+      console.log("🛒 Detected view cart intent");
+      return {
+        intent: "VIEW_CART",
+        confidence: 0.9,
+        message: userMessage,
+      };
+    }
+
+    if (
+      message.includes("checkout") ||
+      message.includes("proceed to checkout") ||
+      message.includes("place order")
+    ) {
+      console.log("💳 Detected checkout intent");
+      return {
+        intent: "CHECKOUT",
+        confidence: 0.9,
+        message: userMessage,
+      };
+    }
+
+    if (
+      message.includes("corset") &&
+      (message.includes("show me") ||
+        message.includes("what") ||
+        message.includes("tell me about"))
+    ) {
+      console.log("🎯 Detected specific product category request for corsets");
+      return {
+        intent: "PRODUCT_CATEGORY",
+        confidence: 0.9,
+        message: userMessage,
+      };
+    }
+
+    if (
+      message.includes("lingerie") &&
+      (message.includes("show me") ||
+        message.includes("what") ||
+        message.includes("tell me about"))
+    ) {
+      console.log("🎯 Detected specific product category request for lingerie");
+      return {
+        intent: "PRODUCT_CATEGORY",
+        confidence: 0.9,
+        message: userMessage,
+      };
+    }
+
+    if (
+      message.includes("accessories") &&
+      (message.includes("show me") ||
+        message.includes("what") ||
+        message.includes("tell me about"))
+    ) {
+      console.log(
+        "🎯 Detected specific product category request for accessories"
+      );
+      return {
+        intent: "PRODUCT_CATEGORY",
+        confidence: 0.9,
+        message: userMessage,
+      };
+    }
+
+    if (
+      message.includes("buy") ||
+      message.includes("purchase") ||
+      message.includes("order") ||
+      message.includes("want to buy") ||
+      (message.includes("tell me about") && message.includes("corset"))
+    ) {
+      console.log("🛒 Detected product purchase intent");
+      return {
+        intent: "PRODUCT_PURCHASE",
+        confidence: 0.9,
+        message: userMessage,
+      };
+    }
 
     if (bestIntent[1] >= this.confidenceThreshold) {
       return {
@@ -48,23 +162,20 @@ export class IntentClassifier {
     const keywords = this.getIntentKeywords(intent);
     let score = 0;
 
-    // Check for exact matches first (highest priority)
     if (
       intentExamples[intent].some((example) =>
         message.includes(example.toLowerCase())
       )
     ) {
-      score += 1.0; // Tăng bonus cho exact matches
+      score += 1.0;
     }
 
-    // Check for keyword matches
     keywords.forEach((keyword) => {
       if (message.includes(keyword.toLowerCase())) {
         score += 0.4;
       }
     });
 
-    // Special handling for common phrases with higher weights
     if (intent === "PRODUCT_CATEGORY") {
       if (
         message.includes("show me") ||
@@ -89,7 +200,6 @@ export class IntentClassifier {
       if (message.includes("fitting") || message.includes("consultation")) {
         score += 0.4;
       }
-      // Negative scoring for non-booking keywords
       if (
         message.includes("products") ||
         message.includes("hours") ||
@@ -114,7 +224,6 @@ export class IntentClassifier {
       ) {
         score += 0.4;
       }
-      // Negative scoring for non-hours keywords
       if (
         message.includes("products") ||
         message.includes("book") ||
@@ -135,7 +244,6 @@ export class IntentClassifier {
       if (message.includes("store") || message.includes("parking")) {
         score += 0.4;
       }
-      // Negative scoring for non-location keywords
       if (
         message.includes("products") ||
         message.includes("book") ||
@@ -278,10 +386,9 @@ export class IntentClassifier {
       }
     }
 
-    return Math.max(0, Math.min(score, 1.0)); // Ensure score is between 0 and 1
+    return Math.max(0, Math.min(score, 1.0));
   }
 
-  // Keywords cho từng intent
   getIntentKeywords(intent) {
     const keywordMap = {
       PRODUCT_CATEGORY: [
@@ -360,7 +467,6 @@ export class IntentClassifier {
     return keywordMap[intent] || [];
   }
 
-  // Extract entities từ message
   extractEntities(message, intent) {
     const entities = {};
 
@@ -402,5 +508,4 @@ export class IntentClassifier {
   }
 }
 
-// Singleton instance
 export const intentClassifier = new IntentClassifier();

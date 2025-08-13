@@ -2,30 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom theming for react-chat-elements to clearly distinguish sides */
 .rce-message-list {
   background-color: transparent;
 }
 
-/* Base bubble style */
 .rce-mbox {
   border-radius: 16px !important;
 }
 
-/* Left (bot) messages: white card with soft shadow */
 .rce-mbox-left .rce-mbox {
   background: #ffffff !important;
   color: #111827 !important;
-  /* gray-900 */
   border: 1px solid #e5e7eb !important;
-  /* gray-200 */
   box-shadow: 0 2px 6px rgba(17, 24, 39, 0.06) !important;
-  /* subtle */
 }
 
 .rce-mbox-left .rce-mbox-time {
   color: #9ca3af !important;
-  /* gray-400 */
 }
 
 .rce-mbox-left-notch,
@@ -33,10 +26,8 @@
   border-right-color: #ffffff !important;
 }
 
-/* Right (you) messages: dark slate bubble */
 .rce-mbox-right .rce-mbox {
   background: #2b2f3a !important;
-  /* dark slate like screenshot */
   color: #000 !important;
   border: 1px solid #2b2f3a !important;
   box-shadow: 0 4px 12px rgba(17, 24, 39, 0.18) !important;
@@ -44,7 +35,6 @@
 
 .rce-mbox-right .rce-mbox-time {
   color: #d1d5db !important;
-  /* gray-300 */
 }
 
 .rce-mbox-right .rce-mbox-text,
@@ -57,7 +47,6 @@
   border-left-color: #2b2f3a !important;
 }
 
-/* Keep suggested action pills clean */
 button[data-suggested] {
   background: #ffffff;
   color: #374151;
