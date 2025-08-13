@@ -6,21 +6,57 @@ export default function HeySheetsChat() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
+        {/* Left Sidebar - Business Info + Chat Assistant */}
         <div className="w-96 bg-white border-r border-gray-200 p-6 overflow-y-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">HeySheets</h1>
-            <p className="text-gray-600 text-sm">
-              AI-Powered Customer Service Assistant
-            </p>
+          {/* Business Profile with Avatar */}
+          <div className="mb-8 text-center">
+            <div className="w-20 h-20 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl font-bold text-white">LD</span>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              Lucky Doll Pin-up Lingerie
+            </h1>
           </div>
 
+          {/* Operating Hours */}
+          <p className="text-gray-700 mb-4">Mon-Sat 1pm-6pm</p>
+
+          {/* Address */}
+          <p className="text-gray-700 mb-6">
+            Unit E 4th floor 1867 Oroquieta St. Sta. Cruz Manila, Metro Manila
+            1003
+          </p>
+
+          {/* Icons Row */}
+          <div className="flex space-x-4 mb-6">
+            <span className="text-gray-500 text-xl">📧</span>
+            <span className="text-gray-500 text-xl">🌐</span>
+            <span className="text-gray-500 text-xl">📷</span>
+            <span className="text-gray-500 text-xl">🎵</span>
+          </div>
+
+          {/* Your Chat Assistant Section */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <h2 className="text-lg font-semibold text-gray-800 mb-3">
               Your Chat Assistant
             </h2>
             <p className="text-gray-600 text-sm mb-4">
-              I'm here to help you with:
+              I'm available 24/7 to help you:
             </p>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li>📦 Browse our collection and check availability</li>
+              <li>📅 Schedule appointments and bookings</li>
+              <li>💬 Answer questions about our services</li>
+              <li>🎯 Get personalized recommendations</li>
+            </ul>
+          </div>
+
+          {/* How I can help you Section */}
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h2 className="text-lg font-semibold text-gray-800 mb-3">
+              How I can help you
+            </h2>
+            <p className="text-gray-600 text-sm mb-4">I can assist with:</p>
             <ul className="space-y-2 text-sm text-gray-700">
               <li>📦 Browse products and check availability</li>
               <li>📅 Schedule appointments and bookings</li>
@@ -29,18 +65,15 @@ export default function HeySheetsChat() {
             </ul>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">
-              How I can help you
-            </h2>
-            <p className="text-gray-600 text-sm">
-              I can assist with product inquiries, booking appointments,
-              providing business information, and much more. Just ask me
-              anything!
+          {/* Footer */}
+          <div className="mt-auto pt-6 border-t border-gray-200">
+            <p className="text-center text-sm text-gray-500">
+              Powered by HeySheets
             </p>
           </div>
         </div>
 
+        {/* Right Side - Chat Area */}
         <div className="flex-1 flex flex-col">
           <Thread />
         </div>
