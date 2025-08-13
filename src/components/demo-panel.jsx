@@ -139,32 +139,38 @@ export default function DemoPanel({ onRunDemo, onReset }) {
     <div className="fixed top-4 right-4 z-50">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors"
+        className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition-colors text-sm md:text-base"
       >
-        {isOpen ? "❌" : "🧪"} Demo Panel
+        {isOpen ? "❌" : "🧪"}{" "}
+        <span className="hidden sm:inline">Demo Panel</span>
       </button>
 
       {isOpen && (
-        <div className="absolute top-16 right-0 w-96 bg-white border border-gray-200 rounded-lg shadow-xl p-4 max-h-96 overflow-y-auto">
+        <div className="absolute top-16 right-0 w-[90vw] max-w-sm md:w-96 bg-white border border-gray-200 rounded-lg shadow-xl p-3 md:p-4 max-h-[80vh] md:max-h-96 overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-base md:text-lg font-semibold text-gray-800">
               🧪 Demo System
             </h3>
             <button
               onClick={clearResults}
-              className="text-gray-500 hover:text-gray-700 text-sm"
+              className="text-gray-500 hover:text-gray-700 text-xs md:text-sm"
             >
               Clear
             </button>
           </div>
 
+          {/* Demo Categories */}
           <div className="space-y-3 mb-4">
             {Object.entries(demoConfigs).map(([key, demo]) => (
               <div key={key} className="border border-gray-200 rounded-lg p-3">
                 <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-medium text-gray-800">{demo.name}</h4>
-                    <p className="text-sm text-gray-600">{demo.description}</p>
+                  <div className="flex-1 mr-2">
+                    <h4 className="font-medium text-gray-800 text-sm md:text-base">
+                      {demo.name}
+                    </h4>
+                    <p className="text-xs md:text-sm text-gray-600">
+                      {demo.description}
+                    </p>
                     <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded mt-1">
                       {demo.category}
                     </span>
@@ -172,12 +178,13 @@ export default function DemoPanel({ onRunDemo, onReset }) {
                   <button
                     onClick={() => runDemo(key)}
                     disabled={selectedDemo === key}
-                    className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                    className="bg-green-600 text-white px-2 md:px-3 py-1 rounded text-xs md:text-sm hover:bg-green-700 disabled:opacity-50 whitespace-nowrap"
                   >
                     {selectedDemo === key ? "Running..." : "Run"}
                   </button>
                 </div>
 
+                {/* Demo Steps Preview */}
                 <div className="text-xs text-gray-500">
                   <div className="font-medium mb-1">Steps:</div>
                   <div className="space-y-1">
@@ -197,10 +204,11 @@ export default function DemoPanel({ onRunDemo, onReset }) {
             ))}
           </div>
 
-          <div className="flex space-x-2 mb-4">
+          {/* Action Buttons */}
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
             <button
               onClick={runAllDemos}
-              className="bg-purple-600 text-white px-3 py-2 rounded text-sm hover:bg-purple-700 flex-1"
+              className="bg-purple-600 text-white px-3 py-2 rounded text-sm hover:bg-purple-700"
             >
               🚀 Run All Demos
             </button>
@@ -212,13 +220,16 @@ export default function DemoPanel({ onRunDemo, onReset }) {
             </button>
           </div>
 
+          {/* Results */}
           {demoResults.length > 0 && (
             <div className="border-t pt-4">
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium text-gray-800">Demo Results</h4>
+                <h4 className="font-medium text-gray-800 text-sm md:text-base">
+                  Demo Results
+                </h4>
                 <button
                   onClick={exportResults}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-blue-600 hover:text-blue-800 text-xs md:text-sm"
                 >
                   📥 Export
                 </button>

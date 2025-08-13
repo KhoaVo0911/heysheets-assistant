@@ -195,39 +195,40 @@ export default function DataManager({ onDataChange }) {
     <div className="fixed bottom-4 left-4 z-50">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-colors"
+        className="bg-green-600 text-white px-3 md:px-4 py-2 rounded-lg shadow-lg hover:bg-green-700 transition-colors text-sm md:text-base"
       >
-        {isOpen ? "❌" : "📊"} Data Manager
+        {isOpen ? "❌" : "📊"}{" "}
+        <span className="hidden sm:inline">Data Manager</span>
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-16 left-0 w-96 bg-white border border-gray-200 rounded-lg shadow-xl p-4 max-h-96 overflow-y-auto">
+        <div className="absolute bottom-16 left-0 w-[90vw] max-w-sm md:w-96 bg-white border border-gray-200 rounded-lg shadow-xl p-3 md:p-4 max-h-[80vh] md:max-h-96 overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-base md:text-lg font-semibold text-gray-800">
               📊 Data Manager
             </h3>
             <div className="flex space-x-2">
               <button
                 onClick={exportData}
-                className="text-blue-600 hover:text-blue-800 text-sm"
+                className="text-blue-600 hover:text-blue-800 text-xs md:text-sm"
               >
                 📥 Export
               </button>
               <button
                 onClick={resetToDefault}
-                className="text-red-600 hover:text-red-800 text-sm"
+                className="text-red-600 hover:text-red-800 text-xs md:text-sm"
               >
                 🔄 Reset
               </button>
             </div>
           </div>
 
-          <div className="flex space-x-1 mb-4">
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-1 mb-4">
             {["products", "services", "business"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1 rounded text-sm ${
+                className={`px-3 py-2 md:py-1 rounded text-sm ${
                   activeTab === tab
                     ? "bg-blue-600 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300"

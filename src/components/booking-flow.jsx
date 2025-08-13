@@ -92,21 +92,21 @@ export default function BookingFlow({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 md:p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-[95vw] md:max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-200">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">
             Book Your Appointment
           </h2>
           <button
             onClick={closeFlow}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
+            className="text-gray-400 hover:text-gray-600 text-xl md:text-2xl"
           >
             ×
           </button>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50">
+        <div className="hidden md:block px-6 py-4 bg-gray-50">
           <div className="flex items-center justify-between">
             {["Service", "Date", "Time", "Details", "Confirm"].map(
               (step, index) => {
@@ -162,7 +162,23 @@ export default function BookingFlow({
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="md:hidden px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="text-center">
+            <span className="text-sm font-medium text-gray-600">
+              Step{" "}
+              {[
+                "service-selection",
+                "date-selection",
+                "time-selection",
+                "customer-info",
+                "confirmation",
+              ].indexOf(currentStep) + 1}{" "}
+              of 5
+            </span>
+          </div>
+        </div>
+
+        <div className="p-4 md:p-6">
           {currentStep === "service-selection" && (
             <div className="space-y-6">
               <div>
