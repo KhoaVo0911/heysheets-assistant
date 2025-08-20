@@ -1,5 +1,5 @@
 import React from "react";
-import HeySheetsChat from "./HeySheet";
+import HeySheetsChat from "./pages/HeySheet";
 
 function App() {
   return <HeySheetsChat />;

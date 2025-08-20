@@ -52,3 +52,31 @@ button[data-suggested] {
   color: #374151;
   border: 1px solid #e5e7eb;
 }
+
+
+@font-face {
+  font-family: "Gelica";
+  src: url("/fonts/Fontspring-DEMO-gelica-bold.otf") format("opentype");
+  font-weight: 700;
+  /* Bold */
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Product Sans (khai báo ĐÚNG family) */
+@font-face {
+  font-family: "Product Sans";
+  src: url("/fonts/ProductSans-Regular.ttf") format("truetype");
+  /* hoặc .ttf -> format("truetype") */
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Product Sans";
+  src: url("/fonts/ProductSans-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
