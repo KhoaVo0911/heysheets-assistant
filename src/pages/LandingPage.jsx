@@ -209,6 +209,11 @@ import {
   Table,
   Sheet as SheetIcon,
 } from "lucide-react";
+import botTime from "@/assets/images/botTime.png";
+import logoHeysheets from "@/assets/images/logoHeysheets.png";
+import bubbleNeedHelp from "@/assets/images/Group 55.png";
+import bubbleImHere from "@/assets/images/Group 56.png";
+import clickDoodle from "@/assets/images/clickme.png";
 
 /* ====== Tokens ====== */
 const container = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8";
@@ -567,9 +572,7 @@ function Steps() {
     <section className="py-16 sm:py-24">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center gap-2">
-          <span
-            className={`rounded-full bg-[#F6D46B] px-2.5 py-1 text-xs font-semibold text-black ${bodyFont}`}
-          >
+          <span className="rounded-full bg-[#F6D46B] px-2.5 py-1 text-xs font-semibold text-black">
             AI
           </span>
         </div>
@@ -579,63 +582,78 @@ function Steps() {
           <br />
           Update
         </h2>
-        <p className={`mt-2 max-w-2xl text-base text-[#727272] ${bodyFont}`}>
+        <p className="mt-2 max-w-2xl text-base text-[#727272] font-productSans">
           These are dummy things, so that this should be changed and we need to
           write down the frequently asked questions.
         </p>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          <div className="rounded-[28px] bg-[#DDE3FF] p-8">
-            <div className={`text-sm text-gray-500 ${bodyFont}`}>Step 1</div>
-            <h3 className={`mt-2 text-[34px] ${bodyFont} font-semibold`}>
+        {/* GAP gần nhau + không justify-between để tránh bị “hở” */}
+        <div className="mt-8 flex flex-wrap justify-center gap-6">
+          {/* STEP 1 */}
+          <div className="w-[312px] h-[480px] rounded-[24px] bg-[#DDE3FF] p-6 sm:p-7 flex flex-col">
+            <div className="text-sm text-gray-600 font-productSans">Step 1</div>
+
+            <h3 className="mt-2 text-[32px] leading-tight font-semibold font-productSans">
               Sign up with
               <br />
               Google
             </h3>
 
-            <div className="mt-6">
-              <BrandButton>
-                Free trial <ArrowRight className="h-4 w-4" />
+            <div className="relative mt-24 mx-auto w-fit">
+              <BrandButton className="h-[52px] px-8 text-base text-[#2D2D2D] font-productSans font-semibold">
+                Free trial <ArrowRight className="h-5 w-5" />
               </BrandButton>
-              <div className={`mt-3 text-xs text-gray-600 ${bodyFont}`}>
-                No credit card needed
-              </div>
+
+              {/* Click! bám vào tâm của nút */}
+              <img
+                src={clickDoodle}
+                alt="Click!"
+                className="pointer-events-none select-none absolute -top-10 left-1/2 -translate-x-1/2 w-[106px] h-auto"
+              />
+            </div>
+
+            <div className="mt-2 text-center text-[19px] text-[#3a3a3a] font-productSans font-semibold">
+              No credit card needed
             </div>
           </div>
 
-          <div className="rounded-[28px] bg-[#FFF3C7] p-8">
-            <div className={`text-sm text-gray-500 ${bodyFont}`}>Step 2</div>
-            <h3 className={`mt-2 text-[34px] ${bodyFont} font-semibold`}>
+          {/* STEP 2 */}
+          <div className="w-[312px] h-[480px] rounded-[24px] bg-[#FFF3C7] p-6 sm:p-7 flex flex-col">
+            <div className="text-sm text-gray-600 font-productSans">Step 2</div>
+
+            <h3 className="mt-2 text-[32px] leading-tight font-semibold font-productSans">
               Link with
               <br />
               Google sheets
             </h3>
 
-            <div
-              className={`mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs shadow-sm ring-1 ring-gray-200 ${bodyFont}`}
-            >
-              <SheetIcon className="h-4 w-4 text-emerald-600" />
-              Syncing to Google sheets…
+            <div className="mt-10 flex justify-center">
+              <div className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-[14px] font-semibold shadow-sm ring-1 ring-gray-200 font-productSans mt-16">
+                <SheetIcon className="h-4 w-4 text-emerald-600" />
+                Syncing to Google sheets…
+              </div>
             </div>
 
-            <div className="mt-6 flex gap-1 text-yellow-500">
+            <div className="mt-6 flex justify-center gap-1 text-yellow-500">
               <span className="h-2 w-2 rounded-full bg-yellow-400" />
               <span className="h-2 w-8 rounded-full bg-yellow-300" />
             </div>
           </div>
 
-          <div className="rounded-[28px] bg-[#FFDCEE] p-8">
-            <div className={`text-sm text-gray-500 ${bodyFont}`}>Step 3</div>
-            <h3 className={`mt-2 text-[34px] ${bodyFont} font-semibold`}>
+          {/* STEP 3 */}
+          <div className="w-[312px] h-[480px] rounded-[24px] bg-[#FFDCEE] p-6 sm:p-7 flex flex-col">
+            <div className="text-sm text-gray-600 font-productSans">Step 3</div>
+
+            <h3 className="mt-2 text-[32px] leading-tight font-semibold font-productSans">
               Now chatbot
               <br />
               is ready
             </h3>
 
-            <div className={`mt-6 text-sm ${bodyFont}`}>
+            <div className="mt-6 text-sm font-productSans">
               <div className="mb-3 flex items-center gap-2">
                 <div className="h-6 w-6 rounded-full bg-emerald-600" />
-                <div className={`${bodyFont} font-medium`}>Pottery Shop AI</div>
+                <div className="font-medium">Pottery Shop AI</div>
               </div>
 
               <div className="max-w-xs rounded-2xl bg-white p-3 text-sm shadow-sm ring-1 ring-gray-200">
@@ -660,6 +678,7 @@ function TimeCostSavings() {
   return (
     <section className="py-16 sm:py-24">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* AI badge */}
         <div className="mb-6 flex items-center justify-center">
           <span
             className={`rounded-full bg-[#F6D46B] px-2.5 py-1 text-xs font-semibold text-black ${bodyFont}`}
@@ -668,66 +687,155 @@ function TimeCostSavings() {
           </span>
         </div>
 
-        <h2 className="font-gelica text-center text-3xl sm:text-4xl">
+        {/* Heading */}
+        <h2 className="font-gelica text-center text-4xl sm:text-5xl">
           Time and Cost Savings
         </h2>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          <div className="rounded-[28px] bg-[#EFE6FF] p-8">
-            <h4 className={`text-lg font-semibold ${bodyFont}`}>
+        {/* 2 cards */}
+        <div className="mt-10 grid gap-8 md:grid-cols-2">
+          {/* LEFT CARD */}
+          <div className="relative rounded-[36px] bg-[#EFE6FF] p-8 md:p-10 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]">
+            <h4 className={`text-xl font-semibold ${bodyFont}`}>
               No More{" "}
-              <span className="inline-block rounded bg-white px-1">Q</span>{" "}
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-blue-300 text-[12px] leading-none text-blue-600 align-middle">
+                Q
+              </span>{" "}
               repeat answers
             </h4>
 
+            {/* ghi chú đỏ */}
             <p
               className={`mt-6 max-w-md text-sm italic text-red-500 ${bodyFont}`}
             >
-              This would be change when the chat GUI is done, but it would be
-              image(png)
+              This would be change
+              <br />
+              when the chat GUI is done,
+              <br />
+              but it would be image(png)
             </p>
 
-            <div className="mt-6 space-y-3">
+            {/* khu vực các stripe nghiêng */}
+            <div className="relative mt-6 h-[220px] md:h-[260px]">
               {[
-                "Can I book 5 people at Friday?",
-                "2AM blah booking available?",
-                "Empty seats for next weekend?",
-              ].map((t, i) => (
+                {
+                  t: "Can I book 5 people at Friday?",
+                  top: "6%",
+                  left: "10%",
+                  rot: "-7",
+                },
+                {
+                  t: "2AM blah booking available?",
+                  top: "26%",
+                  left: "46%",
+                  rot: "-5",
+                },
+                {
+                  t: "2AM booking available?",
+                  top: "48%",
+                  left: "50%",
+                  rot: "-3",
+                },
+                {
+                  t: "Empty seats for next weekend?",
+                  top: "46%",
+                  left: "26%",
+                  rot: "-2",
+                },
+                {
+                  t: "5 people for Saturday",
+                  top: "33%",
+                  left: "32%",
+                  rot: "-6",
+                },
+                {
+                  t: "2AM booking blah available?",
+                  top: "66%",
+                  left: "50%",
+                  rot: "-4",
+                },
+              ].map((m, i) => (
                 <div
                   key={i}
-                  className={`inline-block rounded-xl bg-white px-3 py-2 text-sm shadow-sm ring-1 ring-gray-200 ${bodyFont}`}
+                  className={`absolute inline-block rounded-xl bg-white px-3 py-2 text-sm shadow-sm ring-1 ring-gray-200 ${bodyFont}`}
+                  style={{
+                    top: m.top,
+                    left: m.left,
+                    transform: `rotate(${m.rot}deg)`,
+                  }}
                 >
-                  {t}
+                  {m.t}
                 </div>
               ))}
             </div>
 
-            <div
-              className={`mt-6 inline-flex items-center gap-2 rounded-full bg-[#F6D46B] px-3 py-1 text-sm text-black ${bodyFont}`}
-            >
-              <span className="inline-block h-5 w-5 rounded-full bg-gray-900/10" />
-              Let me help you!
+            {/* nút Let me help you */}
+            {/* nút Let me help you */}
+            <div className="mt-3 flex items-center gap-3">
+              {/* bot avatar = ảnh tròn 36px */}
+              <div className="h-9 w-9 overflow-hidden rounded-full ring-1 ring-black/10">
+                <img
+                  src={botTime}
+                  alt="Bot avatar"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+
+              <div
+                className={`inline-flex items-center rounded-full bg-[#F6D46B] px-4 py-2 text-sm text-[#424040] ${bodyFont}`}
+              >
+                Let me help you!
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[28px] bg-[#D9FFF4] p-8">
+          {/* RIGHT CARD */}
+          <div className="relative rounded-[36px] bg-[#D9FFF4] p-8 md:p-10 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]">
             <h4
-              className={`max-w-sm text-2xl font-semibold leading-snug ${bodyFont}`}
+              className={`max-w-sm text-[26px] font-semibold leading-8 ${bodyFont}`}
             >
-              24/7 live customer support is available with Heysheets.
+              24/7 live customer
+              <br />
+              support is available with
+              <br />
+              Heysheets.
             </h4>
 
-            <div className="mt-8 space-y-4">
-              <div
-                className={`inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-lg shadow-sm ring-1 ring-gray-200 ${bodyFont}`}
-              >
-                Need help!!
+            {/* bubble + avatar */}
+            <div className="mt-10 flex items-center justify-end gap-3">
+              <img
+                src={bubbleNeedHelp}
+                alt="Need help!!"
+                className="h-[46px] w-auto select-none pointer-events-none"
+                draggable="false"
+              />
+              <div className="h-10 w-10 overflow-hidden rounded-full ring-1 ring-black/10">
+                {/* avatar người dùng, tạm placeholder */}
+                <img
+                  src="https://i.pravatar.cc/40"
+                  alt="user"
+                  className="h-full w-full object-cover"
+                  draggable="false"
+                />
               </div>
-              <div
-                className={`inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-lg shadow-sm ring-1 ring-gray-200 ${bodyFont}`}
-              >
-                I’m here!
+            </div>
+
+            <div className="mt-10 flex items-center gap-3">
+              {/* logo Heysheets tròn 40px, nền trắng và viền nhẹ */}
+              <div className="h-10 w-10 overflow-hidden rounded-full bg-white ring-1 ring-black/10 flex items-center justify-center">
+                <img
+                  src={logoHeysheets}
+                  alt="Heysheets logo"
+                  className="h-8 w-8 object-contain select-none pointer-events-none"
+                  draggable="false"
+                />
               </div>
+              <img
+                src={bubbleImHere}
+                alt="I’m here!"
+                className="h-[46px] w-auto select-none pointer-events-none"
+                draggable="false"
+              />
             </div>
           </div>
         </div>
